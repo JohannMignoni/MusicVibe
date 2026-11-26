@@ -1,5 +1,22 @@
 const { body, validationResult } = require('express-validator');
-const { VALIDATION } = require('../../config/constants');
+const { VALIDATION, MAX_VIDEO_DURATION_SECONDS } = require('../../config/constants');
+
+exports.validateVideoDuration = (durationSeconds) => {
+    const duration = Number(durationSeconds);
+    if (!Number.isFinite(duration) || duration <= 0) {
+        return {
+            valid: false,
+            message: 'A duração do vídeo deve ser maior que 0 segundos.',
+        };
+    }
+    if (duration > MAX_VIDEO_DURATION_SECONDS) {
+        return {
+            valid: false,
+            message: `O vídeo deve ter no máximo ${MAX_VIDEO_DURATION_SECONDS} segundos.`,
+        };
+    }
+    return { valid: true, durationSeconds: duration };
+};
 
 const validate = (req, res, next) => {
     const errors = validationResult(req);
