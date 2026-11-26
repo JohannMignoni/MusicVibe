@@ -13,6 +13,19 @@ const validate = (req, res, next) => {
     throw error;
 };
 
+exports.validateCommentContent = (content) => {
+    if (typeof content !== 'string' || content.trim().length === 0) {
+        return { valid: false, message: 'O comentário não pode ser vazio.' };
+    }
+    if (content.trim().length > VALIDATION.COMMENT_MAX) {
+        return {
+            valid: false,
+            message: `O comentário deve ter no máximo ${VALIDATION.COMMENT_MAX} caracteres.`,
+        };
+    }
+    return { valid: true, value: content.trim() };
+};
+
 exports.commentValidator = [
     body('content')
         .notEmpty()
