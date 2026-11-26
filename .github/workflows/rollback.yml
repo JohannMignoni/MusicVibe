@@ -1,0 +1,41 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag da Release para restaurar em produção (ex.: v0.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  rollback:
+    name: Restaurar Release em Produção
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout completo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validar existência da tag e promover Release como Latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_TAG: ${{ inputs.tag }}
+        run: |
+          echo "Validando Release para a tag: $TARGET_TAG"
+          gh release view "$TARGET_TAG"
+
+          echo "Promovendo $TARGET_TAG como versão oficial (Latest) em produção..."
+          gh release edit "$TARGET_TAG" --latest
+
+          {
+            echo "## Rollback em Produção Concluído"
+            echo "- **Tag restaurada (Latest):** \`$TARGET_TAG\`"
+            echo "- **Acionado por:** \`${GITHUB_ACTOR}\`"
+            echo "- **Ambiente:** \`production\`"
+          } >> "$GITHUB_STEP_SUMMARY"
